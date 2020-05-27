@@ -159,7 +159,8 @@
     {
       "Effect": "Allow",
       "Action": [
-        "ssm:GetParameter"
+        "ssm:GetParameter",
+        "ssm:GetParameters"
       ],
       "Resource": "arn:aws:ssm:us-west-2:*:parameter/fax_gateway.*"
     }
