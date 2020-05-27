@@ -1,16 +1,12 @@
-from typing import TYPE_CHECKING, Optional
+from typing import Optional
 
-import boto3
+import boto3  # type: ignore
 from botocore.config import Config  # type: ignore
 
 from .messages import Fax, Webhook
 from .settings import BACKOFF_DELAY, FAX_QUEUE_URL, RETRY_QUEUE_URL, WEBHOOK_QUEUE_URL
 
-if TYPE_CHECKING:
-    from mypy_boto3 import sqs
-
-
-client: "sqs.SQSClient" = boto3.client(
+client = boto3.client(
     "sqs", config=Config(retries={"max_attempts": 10, "mode": "standard"})
 )
 

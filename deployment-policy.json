@@ -22,7 +22,7 @@
         "cloudformation:UpdateStack"
       ],
       "Resource": [
-        "arn:aws:cloudformation:us-west-2:*:stack/fax_gateway-*/*"
+        "arn:aws:cloudformation:us-west-2:*:stack/fax-gateway-*/*"
       ]
     },
     {
@@ -42,8 +42,8 @@
         "s3:*"
       ],
       "Resource": [
-        "arn:aws:s3:::fax_gateway*serverlessdeploy*",
-        "arn:aws:s3:::fax_gateway*serverlessdeploy*/*"
+        "arn:aws:s3:::fax-gateway*serverlessdeploy*",
+        "arn:aws:s3:::fax-gateway*serverlessdeploy*/*"
       ]
     },
     {
@@ -58,7 +58,7 @@
         "lambda:Update*"
       ],
       "Resource": [
-        "arn:aws:lambda:us-west-2:*:function:fax_gateway-*-*"
+        "arn:aws:lambda:us-west-2:*:function:fax-gateway-*-*"
       ]
     },
     {
@@ -67,14 +67,14 @@
         "iam:PassRole"
       ],
       "Resource": [
-        "arn:aws:iam::*:role/fax_gateway-*"
+        "arn:aws:iam::*:role/fax-gateway-*"
       ]
     },
     {
       "Effect": "Allow",
       "Action": "kinesis:*",
       "Resource": [
-        "arn:aws:kinesis:*:*:stream/fax_gateway-*-us-west-2"
+        "arn:aws:kinesis:*:*:stream/fax-gateway-*-us-west-2"
       ]
     },
     {
@@ -87,7 +87,7 @@
         "iam:DeleteRole"
       ],
       "Resource": [
-        "arn:aws:iam::*:role/fax_gateway-*-us-west-2-lambdaRole"
+        "arn:aws:iam::*:role/fax-gateway-*-us-west-2-lambdaRole"
       ]
     },
     {
@@ -137,7 +137,7 @@
         "events:Delete*"
       ],
       "Resource": [
-        "arn:aws:events:*:*:rule/fax_gateway-*-us-west-2"
+        "arn:aws:events:*:*:rule/fax-gateway-*-us-west-2"
       ]
     },
     {
@@ -146,7 +146,7 @@
         "events:DescribeRule"
       ],
       "Resource": [
-        "arn:aws:events:us-west-2:*:rule/fax_gateway-*-*"
+        "arn:aws:events:us-west-2:*:rule/fax-gateway-*-*"
       ]
     },
     {
@@ -161,7 +161,7 @@
       "Action": [
         "ssm:GetParameter"
       ],
-      "Resource": "arn:aws:ssm:us-west-2:*:parameter/fax_gateway.*"
+      "Resource": "arn:aws:ssm:us-west-2:*:parameter/fax-gateway.*"
     }
   ]
 }

@@ -17,7 +17,7 @@ deploy:
     script: >-
       yarn sls deploy -s dev
     on:
-      branch: master
+      branch: feature/first-commit
   # deploy v* tags to prod
   - provider: script
     skip_cleanup: true

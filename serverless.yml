@@ -24,8 +24,9 @@ provider:
     TWILIO_SID: ${ssm:fax_gateway.common.twilio_sid~true}
     TWILIO_AUTH_TOKEN: ${ssm:fax_gateway.common.twilio_auth_token~true}
 
-    # The outgoing phone number the faxes will be sent from
-    TWILIO_PHONE_NUMBER: ${self:custom.twilioPhoneNumber.${self:custom.stage}}
+    # The outgoing phone number the faxes will be sent from. This must be a
+    # fax-capable number in your Twilio account.
+    TWILIO_PHONE_NUMBER: ${ssm:fax_gateway.${self:custom.stage}.twilio_phone_number~true}
 
     # How many times to try sending a fax before giving up. Faxes can fail because
     # the receiver is busy or out of paper, so you should set this pretty
@@ -95,13 +96,6 @@ custom:
       'pip',
       'setuptools'
     ]
-
-  # The outbound phone numbers the faxes will be sent from. These must be
-  # fax-capable numbers in your Twilio account.
-  twilioPhoneNumber:
-    local: "+16174041786"
-    dev: "+18578568683"
-    prod: "+16282448683"
 
   # Make stage/region accessible to other parts of the config
   stage: ${opt:stage, self:provider.stage}
