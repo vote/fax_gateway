@@ -1,0 +1,167 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "cloudformation:List*",
+        "cloudformation:Get*",
+        "cloudformation:ValidateTemplate"
+      ],
+      "Resource": [
+        "*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "cloudformation:CreateStack",
+        "cloudformation:CreateUploadBucket",
+        "cloudformation:DeleteStack",
+        "cloudformation:Describe*",
+        "cloudformation:UpdateStack"
+      ],
+      "Resource": [
+        "arn:aws:cloudformation:us-west-2:*:stack/fax_gateway-*/*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "lambda:Get*",
+        "lambda:List*",
+        "lambda:CreateFunction"
+      ],
+      "Resource": [
+        "*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:*"
+      ],
+      "Resource": [
+        "arn:aws:s3:::fax_gateway*serverlessdeploy*",
+        "arn:aws:s3:::fax_gateway*serverlessdeploy*/*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "lambda:AddPermission",
+        "lambda:CreateAlias",
+        "lambda:DeleteFunction",
+        "lambda:InvokeFunction",
+        "lambda:PublishVersion",
+        "lambda:RemovePermission",
+        "lambda:Update*"
+      ],
+      "Resource": [
+        "arn:aws:lambda:us-west-2:*:function:fax_gateway-*-*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "iam:PassRole"
+      ],
+      "Resource": [
+        "arn:aws:iam::*:role/fax_gateway-*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": "kinesis:*",
+      "Resource": [
+        "arn:aws:kinesis:*:*:stream/fax_gateway-*-us-west-2"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "iam:GetRole",
+        "iam:CreateRole",
+        "iam:PutRolePolicy",
+        "iam:DeleteRolePolicy",
+        "iam:DeleteRole"
+      ],
+      "Resource": [
+        "arn:aws:iam::*:role/fax_gateway-*-us-west-2-lambdaRole"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "cloudwatch:GetMetricStatistics"
+      ],
+      "Resource": [
+        "*"
+      ]
+    },
+    {
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream"
+      ],
+      "Resource": [
+        "arn:aws:logs:us-west-2:*:*"
+      ],
+      "Effect": "Allow"
+    },
+    {
+      "Action": [
+        "logs:PutLogEvents"
+      ],
+      "Resource": [
+        "arn:aws:logs:us-west-2:*:*"
+      ],
+      "Effect": "Allow"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "logs:DescribeLogStreams",
+        "logs:DescribeLogGroups",
+        "logs:FilterLogEvents"
+      ],
+      "Resource": [
+        "*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "events:Put*",
+        "events:Remove*",
+        "events:Delete*"
+      ],
+      "Resource": [
+        "arn:aws:events:*:*:rule/fax_gateway-*-us-west-2"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "events:DescribeRule"
+      ],
+      "Resource": [
+        "arn:aws:events:us-west-2:*:rule/fax_gateway-*-*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ssm:DescribeParameters"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ssm:GetParameter"
+      ],
+      "Resource": "arn:aws:ssm:us-west-2:*:parameter/fax_gateway.*"
+    }
+  ]
+}

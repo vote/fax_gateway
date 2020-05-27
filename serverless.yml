@@ -1,0 +1,272 @@
+service: fax-gateway
+
+provider:
+  name: aws
+  runtime: python3.7
+
+  # The default stage is the "local" stage; CI can deploy other stages (dev and prod)
+  stage: local
+
+  # We use us-west-2 as our AWS region
+  region: us-west-2
+
+  # 30-second timeout by default
+  timeout: 30
+
+  # Environment variables
+  environment:
+    # Sentry integration: sends Lambda errors to Sentry. Remove this if you don't want to
+    # use Sentry
+    SENTRY_DSN: ${ssm:fax_gateway.common.sentry_dsn~true}
+    SENTRY_ENVIRONMENT: ${self:custom.stage}
+
+    # Your twilio auth parameters
+    TWILIO_SID: ${ssm:fax_gateway.common.twilio_sid~true}
+    TWILIO_AUTH_TOKEN: ${ssm:fax_gateway.common.twilio_auth_token~true}
+
+    # The outgoing phone number the faxes will be sent from
+    TWILIO_PHONE_NUMBER: ${self:custom.twilioPhoneNumber.${self:custom.stage}}
+
+    # How many times to try sending a fax before giving up. Faxes can fail because
+    # the receiver is busy or out of paper, so you should set this pretty
+    # generously
+    MAX_FAX_ATTEMPTS: "20"
+
+    # How many seconds to wait between retries
+    BACKOFF_DELAY: "600"
+
+    # Pass the queue URLs to the function
+    QUEUE_URL_FAX: { "Ref" : "FaxQueue" }
+    QUEUE_URL_WEBHOOK: { "Ref" : "WebhookQueue" }
+    QUEUE_URL_RETRY: { "Ref" : "RetryQueue" }
+
+
+  # Memory allocated to each lambda function
+  memorySize: 512
+
+  # Allow the lambda functions to access the SQS queues
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - sqs:*
+      Resource:
+        - "Fn::GetAtt": [ FaxQueue, Arn ]
+        - "Fn::GetAtt": [ WebhookQueue, Arn ]
+        - "Fn::GetAtt": [ RetryQueue, Arn ]
+        - "Fn::GetAtt": [ FaxDLQ, Arn ]
+        - "Fn::GetAtt": [ WebhookDLQ, Arn ]
+        - "Fn::GetAtt": [ RetryDLQ, Arn ]
+
+package:
+  exclude:
+    - 'node_modules/**'
+    - '.vscode/**'
+    - '.mypy_cache/**'
+    - 'package.json'
+    - 'yarn.lock'
+
+
+
+plugins:
+  # This plugin installs our python dependencies, using docker to properly compile
+  # them for Lambda
+  - serverless-python-requirements
+
+  # Clean up old versions so we don't exceed our code storage quota
+  - serverless-prune-plugin
+
+  # Datadog integration: remove this if you don't use datadog
+  - serverless-plugin-datadog
+
+custom:
+  # Specify how to build our python dependencies, and which ones are
+  # already available in Lambda and don't need to be bundled with the
+  # application
+  pythonRequirements:
+    dockerizePip: true
+    noDeploy: [
+      'boto3',
+      'botocore',
+      'docutils',
+      'jmespath',
+      'python-dateutil',
+      's3transfer',
+      'six',
+      'pip',
+      'setuptools'
+    ]
+
+  # The outbound phone numbers the faxes will be sent from. These must be
+  # fax-capable numbers in your Twilio account.
+  twilioPhoneNumber:
+    local: "+16174041786"
+    dev: "+18578568683"
+    prod: "+16282448683"
+
+  # Make stage/region accessible to other parts of the config
+  stage: ${opt:stage, self:provider.stage}
+  region: ${opt:region, self:provider.region}
+
+  # Configure DataDog integration. If you've removed serverless-plugin-datadog
+  # above, you can remove this. flushMetricsToLogs requires that you have
+  # the datadog forwarder installed; see
+  # https://github.com/DataDog/datadog-serverless-functions/tree/master/aws/logs_monitoring#installation
+  # for details.
+  datadog:
+    flushMetricsToLogs: true
+
+  # Automatically remove old function versions to avoid filling up your lambda code storage
+  # quota.
+  prune:
+    automatic: true
+    number: 3
+
+  # SQS queue names
+  queueNames:
+    fax: fax-gateway-${self:custom.stage}-fax.fifo
+    retry: fax-gateway-${self:custom.stage}-retry
+    webhook: fax-gateway-${self:custom.stage}-webhook
+    faxDLQ: fax-gateway-${self:custom.stage}-fax-dlq.fifo
+    retryDLQ: fax-gateway-${self:custom.stage}-retry-dlq
+    webhookDLQ: fax-gateway-${self:custom.stage}-webhook-dlq
+
+resources:
+  Resources:
+    # The fax queue is where incoming requests are written to. It's
+    # FIFO queue that uses the destination phone number as the message
+    # group, so we won't fax the same number twice at the same time.
+    FaxQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        FifoQueue: true
+        QueueName: ${self:custom.queueNames.fax}
+        # This controls how long between retries if the fax lambda fails.
+        # The fax lambda just send the request to Twilio -- it should never
+        # fail unless Twilio is down (it won't fail if the fax is undeliverable).
+        #
+        # This VisibilityTimeout *must* be higher than the Lambda timeout --
+        # otherwise messages will be retried before the lambda can finish! The
+        # fax sending lambda has a 15-minute timeout, because it doesn't return
+        # until the fax is done sending, and faxes can take a long time (~1 minute
+        # per page).
+        #
+        # So we set this pretty high -- we wait 20 minutes between retries, and give
+        # it 3 retries before we give up
+        VisibilityTimeout: 1200
+        RedrivePolicy:
+          deadLetterTargetArn:
+            "Fn::GetAtt": [ FaxDLQ, Arn ]
+          maxReceiveCount: 3
+
+    # The webhook queue stores the callbacks we need to make to the calling
+    # application, letting it know about success or failure of sending the
+    # fax.
+    WebhookQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:custom.queueNames.webhook}
+
+        # This controls how long between retries if the webhook lambda fails.
+        # This lambda can fail if the calling application can't receive the
+        # webhook, so we use pretty aggressive retry behavior -- we include
+        # an ID the receiver can use for deduplication/idempotence.
+        #
+        # We wait 3 minutes between retries, and will attempt to send the
+        # webhook up to 20 times.
+        VisibilityTimeout: 180
+        RedrivePolicy:
+          deadLetterTargetArn:
+            "Fn::GetAtt": [ WebhookDLQ, Arn ]
+          maxReceiveCount: 20
+
+    # The retry queue stores faxes that failed to send (because the receiver was
+    # busy, offline, or out of paper, for example). It's a regular queue rather
+    # than a FIFO queue so that we can use per-message delays to implement
+    # exponential backoff.
+    RetryQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:custom.queueNames.retry}
+
+        # This controls how long between retries if the retry lambda fails.
+        # The retry lambda just enqueues the message in the fax queue (it
+        # doesn't send it directly, because we need to fax queue's FIFO
+        # behavior to ensure we're not sending to the same fax multiple times
+        # at once). So we shouldn't need much retry -- this will only fail if
+        # lambda or SQS is down: retry every 3 minutes and give up after 3 tries.
+        VisibilityTimeout: 180
+        RedrivePolicy:
+          deadLetterTargetArn:
+            "Fn::GetAtt": [ RetryDLQ, Arn ]
+          maxReceiveCount: 3
+
+    # These two queues are dead-letter queues (DLQ): if messages can't be processed
+    # from the above queues, they end up in here after maxReceiveCount tries.
+    #
+    # This *does not* include expected failures to send the fax itself -- it
+    # only includes failures due to errors in our lambda handles, or outages
+    # of Twilio, SQS, or the calling application.
+    #
+    # We never read out of these queues; they're just here to store failures
+    # for later inspection. You should monitor these queues and examine any
+    # messages that end up in them (for example, you might want to set up a
+    # DataDog or CloudWatch alert if the queue size is ever greater than 0).
+    FaxDLQ:
+      Type: AWS::SQS::Queue
+      Properties:
+        FifoQueue: true
+        QueueName: ${self:custom.queueNames.faxDLQ}
+    RetryDLQ:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:custom.queueNames.retryDLQ}
+    WebhookDLQ:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:custom.queueNames.webhookDLQ}
+
+
+functions:
+  fax_processor:
+    handler: app.fax_processor.handler
+    timeout: 900
+    events:
+      - sqs:
+          # Only accept one fax at a time -- we only have 15 minutes to
+          # send the fax, so we can't count on delivering a bunch of faxes
+          # within that timeframe.
+          batchSize: 1
+
+          # Don't use lambda's built-in retry -- keep it simple and just use
+          # SQS for retry
+          maximumRetryAttempts: 0
+          arn:
+            'Fn::GetAtt':
+              - FaxQueue
+              - Arn
+
+  retry_processor:
+    handler: app.retry_processor.handler
+    events:
+      - sqs:
+          batchSize: 1
+          maximumRetryAttempts: 0
+          arn:
+            'Fn::GetAtt':
+              - RetryQueue
+              - Arn
+
+  webhook_processor:
+    handler: app.webhook_processor.handler
+    events:
+      - sqs:
+          batchSize: 1
+          maximumRetryAttempts: 0
+          arn:
+            'Fn::GetAtt':
+              - WebhookQueue
+              - Arn
+
+
+
+

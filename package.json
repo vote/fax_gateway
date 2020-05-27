@@ -1,0 +1,23 @@
+{
+  "name": "fax_gateway",
+  "version": "1.0.0",
+  "repository": "git@github.com:vote/fax_gateway.git",
+  "private": true,
+  "dependencies": {
+    "serverless": "^1.67.3",
+    "serverless-python-requirements": "^5.1.0"
+  },
+  "devDependencies": {
+    "husky": "^4.2.5",
+    "serverless-plugin-datadog": "^0.24.0",
+    "serverless-prune-plugin": "^1.4.2"
+  },
+  "scripts": {
+    "sls": "serverless"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "pipenv run format"
+    }
+  }
+}
