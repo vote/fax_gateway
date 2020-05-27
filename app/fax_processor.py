@@ -2,11 +2,12 @@ import logging
 import time
 from typing import Any
 
+from sentry_sdk import capture_exception
+
 from app.helpers.messages import Fax, FaxStatus, Webhook, WebhookPayload
 from app.helpers.settings import MAX_FAX_ATTEMPTS
 from app.helpers.sqs import enqueue_retry, enqueue_webhook
 from app.helpers.twilio import PHONE_NUMBER, client
-from sentry_sdk import capture_exception
 
 # Twilio fax status codes indicating still-in-progress or success -- all other
 # codes are considered failures.
