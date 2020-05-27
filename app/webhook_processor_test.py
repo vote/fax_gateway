@@ -1,6 +1,6 @@
-import pytest
+import pytest  # type: ignore
 import requests
-import responses
+import responses  # type: ignore
 
 from app.helpers.messages import FaxStatus, Webhook, WebhookPayload
 

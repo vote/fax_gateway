@@ -1,4 +1,4 @@
-import pytest
+import pytest  # type: ignore
 
 from .messages import Fax, FaxStatus, Webhook, WebhookPayload
 
