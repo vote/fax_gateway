@@ -140,6 +140,7 @@ resources:
       Properties:
         FifoQueue: true
         QueueName: ${self:custom.queueNames.fax}
+        ContentBasedDeduplication: true
         # This controls how long between retries if the fax lambda fails.
         # The fax lambda just send the request to Twilio -- it should never
         # fail unless Twilio is down (it won't fail if the fax is undeliverable).
@@ -215,6 +216,7 @@ resources:
       Type: AWS::SQS::Queue
       Properties:
         FifoQueue: true
+        ContentBasedDeduplication: true
         QueueName: ${self:custom.queueNames.faxDLQ}
     RetryDLQ:
       Type: AWS::SQS::Queue

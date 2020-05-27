@@ -9,7 +9,6 @@ mypy = "*"
 autoflake = "*"
 isort = "*"
 pytest = "*"
-boto3-stubs = {extras = ["s3", "sqs"],version = "*"}
 freezegun = "*"
 pytest-mock = "*"
 responses = "*"
@@ -20,6 +19,7 @@ twilio = "*"
 requests = "*"
 sentry-sdk = "*"
 dataclasses-json = "*"
+boto3-stubs = {extras = ["s3", "sqs"],version = "*"}
 
 [requires]
 python_version = "3.7"

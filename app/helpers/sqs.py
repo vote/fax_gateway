@@ -1,13 +1,16 @@
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 import boto3
 from botocore.config import Config  # type: ignore
-from mypy_boto3 import sqs
 
 from .messages import Fax, Webhook
 from .settings import BACKOFF_DELAY, FAX_QUEUE_URL, RETRY_QUEUE_URL, WEBHOOK_QUEUE_URL
 
-client: sqs.SQSClient = boto3.client(
+if TYPE_CHECKING:
+    from mypy_boto3 import sqs
+
+
+client: "sqs.SQSClient" = boto3.client(
     "sqs", config=Config(retries={"max_attempts": 10, "mode": "standard"})
 )
 
@@ -18,22 +21,14 @@ def _enqueue_regular(queue_url: str, body: str, delay_seconds: Optional[int] = 0
     )
 
 
-def _enqueue_fifo(queue_url: str, body: str, message_group: str, deduplication_id: str):
+def _enqueue_fifo(queue_url: str, body: str, message_group: str):
     client.send_message(
-        QueueUrl=queue_url,
-        MessageBody=body,
-        MessageGroupId=message_group,
-        MessageDeduplicationId=deduplication_id,
+        QueueUrl=queue_url, MessageBody=body, MessageGroupId=message_group
     )
 
 
 def enqueue_fax(fax: Fax):
-    _enqueue_fifo(
-        FAX_QUEUE_URL,
-        fax.json_dumps(),
-        message_group=fax.to,
-        deduplication_id=fax.fax_id,
-    )
+    _enqueue_fifo(FAX_QUEUE_URL, fax.json_dumps(), message_group=fax.to)
 
 
 def enqueue_retry(fax: Fax):
