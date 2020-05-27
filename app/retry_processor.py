@@ -1,5 +1,3 @@
-import logging
-import time
 from typing import Any
 
 from app.helpers.messages import Fax

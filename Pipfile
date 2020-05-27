@@ -28,7 +28,7 @@ python_version = "3.7"
 allow_prereleases = true
 
 [scripts]
-autoflake = "autoflake --remove-unused-variables --remove-all-unused-imports --ignore-init-module-imports --recursive app"
+autoflake = "autoflake --remove-unused-variables --remove-all-unused-imports --ignore-init-module-imports -i --recursive app"
 isort = "isort --recursive app"
 black = "black app"
 mypy = "mypy app"

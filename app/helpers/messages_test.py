@@ -1,4 +1,3 @@
-import datetime
 import json
 
 from freezegun import freeze_time  # type: ignore

@@ -1,11 +1,8 @@
-import logging
-import time
 from typing import Any
 
 import requests
 
 from app.helpers.messages import Webhook
-from app.helpers.sqs import enqueue_fax
 
 
 # Take a webhook record from the queue and try to send it to the calling
