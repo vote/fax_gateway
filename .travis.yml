@@ -1,7 +1,7 @@
 distro: bionic
 language: node_js
 node_js:
-  - 13.5.0
+  - 14
 install:
   - sudo apt-get update
   - sudo apt-get install python3-pip python3-setuptools python3-wheel awscli
