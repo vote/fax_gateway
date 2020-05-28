@@ -1,0 +1,36 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+black = "*"
+mypy = "*"
+autoflake = "*"
+isort = "*"
+pytest = "*"
+freezegun = "*"
+pytest-mock = "*"
+responses = "*"
+
+[packages]
+boto3 = "*"
+twilio = "*"
+requests = "*"
+sentry-sdk = "*"
+dataclasses-json = "*"
+
+[requires]
+python_version = "3.7"
+
+[pipenv]
+allow_prereleases = true
+
+[scripts]
+autoflake = "autoflake --remove-unused-variables --remove-all-unused-imports --ignore-init-module-imports -i --recursive app"
+isort = "isort --recursive app"
+black = "black app"
+mypy = "mypy app"
+pytest = "bash -c 'TWILIO_SID=abc123 TWILIO_AUTH_TOKEN=def456 TWILIO_PHONE_NUMBER=+16175551234 MAX_FAX_ATTEMPTS=10 BACKOFF_DELAY=100 QUEUE_URL_FAX=fax-queue-url QUEUE_URL_WEBHOOK=webhook-queue-url QUEUE_URL_RETRY=retry-queue-url pytest app'"
+test = "bash -c 'pipenv run mypy && pipenv run pytest'"
+format = "bash -c 'pipenv run autoflake && pipenv run isort && pipenv run black'"

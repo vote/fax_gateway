@@ -1,0 +1,27 @@
+distro: bionic
+language: node_js
+node_js:
+  - 14
+install:
+  - sudo apt-get update
+  - sudo apt-get install python3-pip python3-setuptools python3-wheel awscli
+  - python3 -m pip install --user pipenv
+  - yarn install
+  - pipenv install --dev
+script:
+  - pipenv run mypy
+deploy:
+  # deploy master to dev
+  - provider: script
+    skip_cleanup: true
+    script: >-
+      yarn sls deploy -s dev
+    on:
+      branch: feature/first-commit
+  # deploy v* tags to prod
+  - provider: script
+    skip_cleanup: true
+    script: yarn sls deploy -s prod
+    on:
+      tags: true
+      condition: $TRAVIS_TAG =~ ^v[0-9.]+$
