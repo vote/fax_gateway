@@ -13,6 +13,16 @@ provider:
   # 30-second timeout by default
   timeout: 30
 
+  # We deploy Fax Gateway into a VPC. You can remove this stanza to deploy it outside your VPC.
+  vpc:
+    securityGroupIds:
+      - sg-09408d97ce1a97fc7
+    subnetIds:
+      - subnet-0d904f9f8e4e33de7
+      - subnet-0eecb686d77fa9fea
+      - subnet-037c3114da0477f7e
+      - subnet-0ec8e635476a780ad
+
   # Environment variables
   environment:
     # Sentry integration: sends Lambda errors to Sentry. Remove this if you don't want to

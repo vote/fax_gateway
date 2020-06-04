@@ -84,7 +84,8 @@
         "iam:CreateRole",
         "iam:PutRolePolicy",
         "iam:DeleteRolePolicy",
-        "iam:DeleteRole"
+        "iam:DeleteRole",
+        "iam:AttachRolePolicy"
       ],
       "Resource": [
         "arn:aws:iam::*:role/fax-gateway-*-us-west-2-lambdaRole"
@@ -163,6 +164,24 @@
         "ssm:GetParameters"
       ],
       "Resource": "arn:aws:ssm:us-west-2:*:parameter/fax_gateway.*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "*"
+      ],
+      "Resource": "arn:aws:sqs:us-west-2:*:fax-gateway*"
+    },
+    {
+      "Action": [
+        "ec2:DescribeSecurityGroups",
+        "ec2:DescribeSecurityGroupReferences",
+        "ec2:DescribeStaleSecurityGroups",
+        "ec2:DescribeVpcs",
+        "ec2:DescribeSubnets"
+      ],
+      "Effect": "Allow",
+      "Resource": "*"
     }
   ]
 }
