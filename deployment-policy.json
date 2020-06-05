@@ -30,7 +30,10 @@
       "Action": [
         "lambda:Get*",
         "lambda:List*",
-        "lambda:CreateFunction"
+        "lambda:CreateFunction",
+        "lambda:ListTags",
+        "lambda:TagResource",
+        "lambda:UntagResource"
       ],
       "Resource": [
         "*"
