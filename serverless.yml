@@ -23,6 +23,10 @@ provider:
       - subnet-037c3114da0477f7e
       - subnet-0ec8e635476a780ad
 
+  # Tags that will be added to each of the deployment resources
+  tags:
+      env: ${self:custom.stage}
+
   # Environment variables
   environment:
     # Sentry integration: sends Lambda errors to Sentry. Remove this if you don't want to
