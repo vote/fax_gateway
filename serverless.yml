@@ -226,14 +226,17 @@ resources:
         FifoQueue: true
         ContentBasedDeduplication: true
         QueueName: ${self:custom.queueNames.faxDLQ}
+        MessageRetentionPeriod: 1209600
     RetryDLQ:
       Type: AWS::SQS::Queue
       Properties:
         QueueName: ${self:custom.queueNames.retryDLQ}
+        MessageRetentionPeriod: 1209600
     WebhookDLQ:
       Type: AWS::SQS::Queue
       Properties:
         QueueName: ${self:custom.queueNames.webhookDLQ}
+        MessageRetentionPeriod: 1209600
 
 
 functions:
