@@ -98,13 +98,13 @@ The most critical tradeoff is that when we read a fax from the queue, the lambda
 
 - We don't need to configure or secure an API Gateway interface. All network communications are outbound from the Fax Gateway.
 
-- It works better with the SQS FIFO queue: we don't want to acknowledge the message until the fax is sent, because we're using SQS message groups to ensure only one fax is sent to a particular recipient at a time (using the recipient fax number as the message group ID). If the lambda function returned success after sending the fax to Twilio, and relied on Twilio's callbacks, then as soon as one fax was send to Twilio, the queue could deliver another message from the same message group -- so we'd send another fax to the same number without waiting for the first one to succeed. We could get around this by *always* returning an error from the Lambda function so the SQS-Lambda integration doesn't delete the message automatically, and then calling the `DeleteMessage` SQS API endpoints manually from the Twilio callback handler, but that would mean we don't get a lot of useful information from standard Lambda monitoring tools, because it would be more difficult to differentiate between real errors from the Lambda function, and errors that we're throwing to get around the Lambda-SQS integration behavior.
+- It works better with the SQS FIFO queue: we don't want to acknowledge the message until the fax is sent, because we're using SQS message groups to ensure only one fax is sent to a particular recipient at a time (using the recipient fax number as the message group ID). If the lambda function returned success after sending the fax to Twilio, and relied on Twilio's callbacks, then as soon as one fax was sent to Twilio, the queue could deliver another message from the same message group -- so we'd send another fax to the same number without waiting for the first one to succeed. We could get around this by *always* returning an error from the Lambda function so the SQS-Lambda integration doesn't delete the message automatically, and then calling the `DeleteMessage` SQS API endpoints manually from the Twilio callback handler, but that would mean we don't get a lot of useful information from standard Lambda monitoring tools, because it would be more difficult to differentiate between real errors from the Lambda function, and errors that we're throwing to get around the Lambda-SQS integration behavior.
 
 However, this trade-off has one major disadvantage: *all faxes must take less than 15 minutes to deliver*, or the lambda function will time out, and we'll end up retrying and re-sending the fax. Faxes typically take less than 1 minute per page, so this shouldn't be a problem as long as your faxes are no more than a few pages long.
 
 ### Queues
 
-A quick overview of the queues and how message flow through them.
+A quick overview of the queues and how messages flow through them.
 
 #### Fax Queue
 
@@ -122,4 +122,4 @@ The Retry Processor reads messages from this queue and just moves them back into
 
 When a fax attempt is made (successful or unsuccessful), the Fax Processor writes a webhook notification to the Webhook Queue. The Webhook Processor reads from this queue and delivers the POST request, erroring if it doesn't get a 2xx response code.
 
-This queue is the most likely to end up with messages going to the dead-letter queue -- unlike the Fax Processor and Retry Processor, which only depend on robust external systems like SQS and Twilio, the Webhook Processor will error if the message's `callback_url` returns an error. By default, we retry delivering the webhook 20 times, so message will only end up in the DLQ if there's a long outage of whatever's handling the `callback_url`.
+This queue is the most likely to end up with messages going to the dead-letter queue -- unlike the Fax Processor and Retry Processor, which only depend on robust external systems like SQS and Twilio, the Webhook Processor will error if the message's `callback_url` returns an error. By default, we retry delivering the webhook 20 times, so messages will only end up in the DLQ if there's a long outage of whatever's handling the `callback_url`.
