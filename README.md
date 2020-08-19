@@ -2,6 +2,8 @@
 
 The VoteAmerica fax gateway is a serverless application that is designed to reliably send large volumes of faxes.
 
+Learn more about the Fax Gateway in [this Twilio Blog post](https://www.twilio.com/blog/reliable-fax-pipeline-twilio-aws-expand-access-ballot-box).
+
 ## Problem Statement
 
 The fax gateway sites in front of the Twilio programmable fax API to handle a number of reliability concerns:
