@@ -4,8 +4,6 @@
     {
       "Effect": "Allow",
       "Action": [
-        "cloudformation:List*",
-        "cloudformation:Get*",
         "cloudformation:ValidateTemplate"
       ],
       "Resource": [
@@ -19,24 +17,11 @@
         "cloudformation:CreateUploadBucket",
         "cloudformation:DeleteStack",
         "cloudformation:Describe*",
-        "cloudformation:UpdateStack"
+        "cloudformation:UpdateStack",
+        "cloudformation:ListStackResources"
       ],
       "Resource": [
         "arn:aws:cloudformation:us-west-2:*:stack/fax-gateway-*/*"
-      ]
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-        "lambda:Get*",
-        "lambda:List*",
-        "lambda:CreateFunction",
-        "lambda:ListTags",
-        "lambda:TagResource",
-        "lambda:UntagResource"
-      ],
-      "Resource": [
-        "*"
       ]
     },
     {
@@ -58,7 +43,10 @@
         "lambda:InvokeFunction",
         "lambda:PublishVersion",
         "lambda:RemovePermission",
-        "lambda:Update*"
+        "lambda:PutProvisionedConcurrencyConfig",
+        "lambda:Update*",
+        "lambda:List*",
+        "lambda:Get*"
       ],
       "Resource": [
         "arn:aws:lambda:us-west-2:*:function:fax-gateway-*-*"
@@ -67,31 +55,11 @@
     {
       "Effect": "Allow",
       "Action": [
-        "iam:PassRole"
+        "iam:PassRole",
+        "iam:GetRole"
       ],
       "Resource": [
         "arn:aws:iam::*:role/fax-gateway-*"
-      ]
-    },
-    {
-      "Effect": "Allow",
-      "Action": "kinesis:*",
-      "Resource": [
-        "arn:aws:kinesis:*:*:stream/fax-gateway-*-us-west-2"
-      ]
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-        "iam:GetRole",
-        "iam:CreateRole",
-        "iam:PutRolePolicy",
-        "iam:DeleteRolePolicy",
-        "iam:DeleteRole",
-        "iam:AttachRolePolicy"
-      ],
-      "Resource": [
-        "arn:aws:iam::*:role/fax-gateway-*-us-west-2-lambdaRole"
       ]
     },
     {
@@ -104,65 +72,9 @@
       ]
     },
     {
-      "Action": [
-        "logs:CreateLogGroup",
-        "logs:CreateLogStream"
-      ],
-      "Resource": [
-        "arn:aws:logs:us-west-2:*:*"
-      ],
-      "Effect": "Allow"
-    },
-    {
-      "Action": [
-        "logs:PutLogEvents"
-      ],
-      "Resource": [
-        "arn:aws:logs:us-west-2:*:*"
-      ],
-      "Effect": "Allow"
-    },
-    {
       "Effect": "Allow",
       "Action": [
-        "logs:DescribeLogStreams",
-        "logs:DescribeLogGroups",
-        "logs:FilterLogEvents"
-      ],
-      "Resource": [
-        "*"
-      ]
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-        "events:Put*",
-        "events:Remove*",
-        "events:Delete*"
-      ],
-      "Resource": [
-        "arn:aws:events:*:*:rule/fax-gateway-*-us-west-2"
-      ]
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-        "events:DescribeRule"
-      ],
-      "Resource": [
-        "arn:aws:events:us-west-2:*:rule/fax-gateway-*-*"
-      ]
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-        "ssm:DescribeParameters"
-      ],
-      "Resource": "*"
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
+        "ssm:DescribeParameters",
         "ssm:GetParameter",
         "ssm:GetParameters"
       ],
